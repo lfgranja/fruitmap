@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.75rem !important;
+  }
+  
+  .app-header h1 {
+    font-size: 1.2rem !important;
+  }
+  
+  /* Adjust map padding to account for mobile UI elements */
+  .leaflet-container {
+    height: calc(100vh - 120px); /* Account for header and nav */
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .app-header h1 {
+    margin: 0;
+  }
+  
+  .app-header div {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .app-header button {
+    flex: 1;
+  }
+}
+
+/* Ensure map controls are visible on smaller screens */
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
+
+/* Additional accessibility improvements */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #2E8B57;
+  outline-offset: 2px;
+}
+
+/* Improve touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
