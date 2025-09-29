@@ -14,9 +14,14 @@ let sequelize: Sequelize;
 if (databaseUrl && databaseUrl.startsWith('sqlite:')) {
   // Use SQLite
   const sqlitePath = databaseUrl.replace('sqlite:', '');
+  // Check if the path is absolute before resolving against current working directory
+  const storagePath = path.isAbsolute(sqlitePath) 
+    ? sqlitePath 
+    : path.resolve(process.cwd(), sqlitePath);
+    
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: path.resolve(process.cwd(), sqlitePath),
+    storage: storagePath,
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
   });
 } else {

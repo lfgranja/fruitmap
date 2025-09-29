@@ -91,8 +91,8 @@ const App: React.FC = () => {
       try {
         // Try to load from API first
         const response = await treeAPI.getAllTrees();
+        // Parse location safely with try-catch
         setTrees(response.data.trees.map((tree: TreeApiResponse) => {
-          // Parse location safely with try-catch
           let position: [number, number] = [0, 0]; // Default fallback position
           try {
             const locationData = typeof tree.location === 'string' ? JSON.parse(tree.location) : tree.location;
