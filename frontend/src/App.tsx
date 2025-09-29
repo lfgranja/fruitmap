@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { treeAPI, speciesAPI } from './services/api';
 
 // Fix for default marker icons in React-Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -25,6 +26,29 @@ interface Tree {
   image?: string;
 }
 
+interface TreeApiResponse {
+  id: string;
+  location: string | { coordinates: [number, number] };
+  title: string;
+  description: string;
+  accessibility: string;
+  contributor?: { username: string };
+  species?: { name: string };
+}
+
+interface Species {
+  id: number;
+  name: string;
+  scientificName?: string;
+}
+
+interface TreeFormState {
+  title: string;
+  species: string;
+  accessibility: string;
+  description: string;
+}
+
 const App: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([-14.2350, -51.9253]); // Center of Brazil
   const [zoom, setZoom] = useState<number>(4);
@@ -33,6 +57,23 @@ const App: React.FC = () => {
   const [selectedTree, setSelectedTree] = useState<Tree | null>(null);
   const [showAddTreeForm, setShowAddTreeForm] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
+  
+  // State for tree form
+  const [treeFormData, setTreeFormData] = useState<TreeFormState>({
+    title: '',
+    species: '',
+    accessibility: 'public',
+    description: ''
+  });
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  
+  // State for toast notifications
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
+  
+  // State for species data
+  const [speciesList, setSpeciesList] = useState<Species[]>([]);
+  const [speciesLoading, setSpeciesLoading] = useState(true);
 
   // Handle window resize for responsive behavior
   useEffect(() => {
@@ -44,64 +85,142 @@ const App: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Mock data for demonstration
+  // Load trees data
   useEffect(() => {
-    // In a real app, this would come from an API
-    const mockTrees: Tree[] = [
-      {
-        id: '1',
-        position: [-23.5505, -46.6333], // São Paulo
-        title: 'Mango Tree',
-        species: 'Mangifera indica',
-        season: 'Summer',
-        description: 'Large mango tree with delicious fruit. Available during summer months.',
-        accessibility: 'Public Park',
-        contributor: 'Maria Silva',
-        rating: 4.5
-      },
-      {
-        id: '2',
-        position: [-19.9167, -43.9345], // Belo Horizonte
-        title: 'Guava Tree',
-        species: 'Psidium guajava',
-        season: 'Spring/Fall',
-        description: 'Abundant guava tree in the community garden.',
-        accessibility: 'Community Garden',
-        contributor: 'João Oliveira',
-        rating: 4.8
-      },
-      {
-        id: '3',
-        position: [-15.7942, -47.8822], // Brasília
-        title: 'Orange Tree',
-        species: 'Citrus sinensis',
-        season: 'Winter',
-        description: 'Sweet oranges available during winter season.',
-        accessibility: 'Public Plaza',
-        contributor: 'Ana Santos',
-        rating: 4.2
-      },
-      {
-        id: '4',
-        position: [-3.7184, -38.5414], // Fortaleza
-        title: 'Cashew Tree',
-        species: 'Anacardium occidentale',
-        season: 'Spring',
-        description: 'Produces cashew nuts and fruit during spring season.',
-        accessibility: 'Public Access',
-        contributor: 'Carlos Mendes',
-        rating: 4.0
+    const fetchTrees = async () => {
+      try {
+        // Try to load from API first
+        const response = await treeAPI.getAllTrees();
+        // Parse location safely with try-catch
+        setTrees(response.data.trees.map((tree: TreeApiResponse) => {
+          let position: [number, number] = [0, 0]; // Default fallback position
+          try {
+            const locationData = typeof tree.location === 'string' ? JSON.parse(tree.location) : tree.location;
+            position = [
+              locationData.coordinates[1], // latitude
+              locationData.coordinates[0]  // longitude
+            ];
+          } catch (error) {
+            console.error(`Error parsing location for tree ${tree.id}:`, error);
+            // Use a default position if parsing fails
+            position = [-14.2350, -51.9253]; // Center of Brazil as fallback
+          }
+          
+          return {
+            id: tree.id,
+            position,
+            title: tree.title,
+            species: tree.species?.name || 'Unknown',
+            season: 'Year-round', // Will be updated when seasonal data API is available
+            description: tree.description,
+            accessibility: tree.accessibility,
+            contributor: tree.contributor?.username
+          };
+        }));
+      } catch (error: unknown) {
+        console.error('Error fetching trees:', error);
+        
+        // Show error notification
+        setToast({message: 'Error loading trees. Showing offline data.', type: 'error'});
+        setTimeout(() => setToast(null), 3000);
+        
+        // Fallback to mock data if API fails
+        const mockTrees: Tree[] = [
+          {
+            id: '1',
+            position: [-23.5505, -46.6333], // São Paulo
+            title: 'Mango Tree',
+            species: 'Mangifera indica',
+            season: 'Summer',
+            description: 'Large mango tree with delicious fruit. Available during summer months.',
+            accessibility: 'Public Park',
+            contributor: 'Maria Silva',
+            rating: 4.5
+          },
+          {
+            id: '2',
+            position: [-19.9167, -43.9345], // Belo Horizonte
+            title: 'Guava Tree',
+            species: 'Psidium guajava',
+            season: 'Spring/Fall',
+            description: 'Abundant guava tree in the community garden.',
+            accessibility: 'Community Garden',
+            contributor: 'João Oliveira',
+            rating: 4.8
+          },
+          {
+            id: '3',
+            position: [-15.7942, -47.8822], // Brasília
+            title: 'Orange Tree',
+            species: 'Citrus sinensis',
+            season: 'Winter',
+            description: 'Sweet oranges available during winter season.',
+            accessibility: 'Public Plaza',
+            contributor: 'Ana Santos',
+            rating: 4.2
+          },
+          {
+            id: '4',
+            position: [-3.7184, -38.5414], // Fortaleza
+            title: 'Cashew Tree',
+            species: 'Anacardium occidentale',
+            season: 'Spring',
+            description: 'Produces cashew nuts and fruit during spring season.',
+            accessibility: 'Public Access',
+            contributor: 'Carlos Mendes',
+            rating: 4.0
+          }
+        ];
+        
+        setTrees(mockTrees);
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    // Simulate API call
-    setTimeout(() => {
-      setTrees(mockTrees);
-      setLoading(false);
-    }, 1000);
+    fetchTrees();
   }, []);
 
-  const handleMapClick = (e: any) => {
+  // Load species data
+  useEffect(() => {
+    const fetchSpecies = async () => {
+      try {
+        // Try to load species from API
+        const response = await speciesAPI.getAllSpecies();
+        setSpeciesList(response.data.species);
+      } catch (error: any) {
+        console.error('Error fetching species:', error);
+        
+        // Show error notification
+        let errorMessage = 'Error loading species list.';
+        if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        setToast({message: errorMessage, type: 'error'});
+        setTimeout(() => setToast(null), 3000);
+        
+        // Fallback to hardcoded species if API fails
+        setSpeciesList([
+          { id: 1, name: 'mango', scientificName: 'Mangifera indica' },
+          { id: 2, name: 'guava', scientificName: 'Psidium guajava' },
+          { id: 3, name: 'orange', scientificName: 'Citrus sinensis' },
+          { id: 4, name: 'cashew', scientificName: 'Anacardium occidentale' },
+          { id: 5, name: 'jackfruit', scientificName: 'Artocarpus heterophyllus' },
+          { id: 6, name: 'avocado', scientificName: 'Persea americana' },
+          { id: 7, name: 'other', scientificName: 'Other fruit species' }
+        ]);
+      } finally {
+        setSpeciesLoading(false);
+      }
+    };
+
+    fetchSpecies();
+  }, []);
+
+  const handleMapClick = (e: { latlng: { lat: number; lng: number } }) => {
     // Handle map click for adding new tree
     console.log('Map clicked at:', e.latlng);
   };
@@ -113,6 +232,158 @@ const App: React.FC = () => {
 
   const handleTreeSelect = (tree: Tree) => {
     setSelectedTree(tree);
+  };
+
+  // Handle input changes for the tree form
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setTreeFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // State to track the selected location for new tree
+  const [newTreePosition, setNewTreePosition] = useState<[number, number] | null>(null);
+  
+  // Handle map click to select tree location or interact with existing trees
+  const handleMapClick = (e: { latlng: { lat: number; lng: number } }) => {
+    if (showAddTreeForm) {
+      // If adding a new tree, set the position
+      setNewTreePosition([e.latlng.lat, e.latlng.lng]);
+      // Update map center to the selected position
+      setMapCenter([e.latlng.lat, e.latlng.lng]);
+    } else {
+      // Handle map click for other purposes (e.g., deselecting a tree)
+      setSelectedTree(null);
+      console.log('Map clicked at:', e.latlng);
+    }
+  };
+
+  // Validate form inputs
+  const validateForm = (): boolean => {
+    if (!treeFormData.title.trim()) {
+      setFormError('Tree name/description is required.');
+      return false;
+    }
+    
+    if (!treeFormData.species) {
+      setFormError('Please select a fruit type.');
+      return false;
+    }
+    
+    if (!newTreePosition) {
+      setFormError('Please select a location on the map for the new tree.');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Handle form submission
+  const handleSubmitTree = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate inputs before proceeding
+    if (!validateForm()) {
+      return;
+    }
+    
+    setFormSubmitting(true);
+    setFormError(null);
+
+    try {
+      // Check if user has selected a position on the map
+      if (!newTreePosition) {
+        throw new Error('Please select a location on the map for the new tree.');
+      }
+      
+      const locationData = {
+        type: 'Point',
+        coordinates: [newTreePosition[1], newTreePosition[0]] // [longitude, latitude]
+      };
+
+      // Find the species ID from the species list
+      const selectedSpecies = speciesList.find(species => species.name === treeFormData.species);
+      
+      // Validate that we have a valid species
+      if (!selectedSpecies) {
+        throw new Error('Please select a valid fruit type.');
+      }
+
+      // Create the tree data object
+      const treeData = {
+        speciesId: selectedSpecies.id,
+        location: JSON.stringify(locationData),
+        title: treeFormData.title,
+        description: treeFormData.description,
+        accessibility: treeFormData.accessibility
+      };
+
+      // Call the API to create the tree
+      const response = await treeAPI.createTree(treeData);
+
+      // On success, add the new tree to the list using the API response
+      const createdTree: TreeApiResponse = response.data.tree;
+      let treePosition: [number, number] = [0, 0]; // Default fallback position
+      
+      try {
+        const locationData = typeof createdTree.location === 'string' 
+          ? JSON.parse(createdTree.location) 
+          : createdTree.location;
+        treePosition = [
+          locationData.coordinates[1], // latitude
+          locationData.coordinates[0]  // longitude
+        ];
+      } catch (error) {
+        console.error(`Error parsing location for new tree ${createdTree.id}:`, error);
+        // Use the position from form if parsing fails
+        treePosition = [newTreePosition[0], newTreePosition[1]];
+      }
+
+      const newTree: Tree = {
+        id: createdTree.id,
+        position: treePosition,
+        title: createdTree.title,
+        species: createdTree.species?.name || treeFormData.species || 'Unknown',
+        season: 'Year-round', // Will be updated when seasonal data API is available
+        description: createdTree.description,
+        accessibility: createdTree.accessibility,
+        contributor: createdTree.contributor?.username || 'You' // Placeholder for current user
+      };
+
+      setTrees(prev => [newTree, ...prev]);
+      
+      // Reset form and close modal
+      setTreeFormData({
+        title: '',
+        species: '',
+        accessibility: 'public',
+        description: ''
+      });
+      setNewTreePosition(null); // Clear selected position
+      setShowAddTreeForm(false);
+      
+      // Show success notification
+      setToast({message: 'Tree added successfully!', type: 'success'});
+      setTimeout(() => setToast(null), 3000); // Auto-hide after 3 seconds
+    } catch (error: any) {
+      console.error('Error adding tree:', error);
+      // Handle error based on error type and response
+      let errorMessage = 'Failed to add tree. Please try again.';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setFormError(errorMessage);
+      setToast({message: errorMessage, type: 'error'});
+      setTimeout(() => setToast(null), 5000); // Auto-hide after 5 seconds
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   // For mobile, adjust the tree detail panel height
@@ -334,11 +605,14 @@ const App: React.FC = () => {
               </button>
             </div>
             
-            <form>
+            <form onSubmit={handleSubmitTree}>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Tree Name/Description</label>
                 <input 
                   type="text" 
+                  name="title"
+                  value={treeFormData.title}
+                  onChange={handleFormChange}
                   placeholder="e.g. Mango Tree near the playground" 
                   style={{ 
                     width: '100%', 
@@ -347,12 +621,16 @@ const App: React.FC = () => {
                     borderRadius: '4px',
                     fontSize: isMobile ? '0.9rem' : '1rem'
                   }}
+                  required
                 />
               </div>
               
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Fruit Type</label>
                 <select 
+                  name="species"
+                  value={treeFormData.species}
+                  onChange={handleFormChange}
                   style={{ 
                     width: '100%', 
                     padding: isMobile ? '0.5rem' : '0.75rem', 
@@ -360,21 +638,28 @@ const App: React.FC = () => {
                     borderRadius: '4px',
                     fontSize: isMobile ? '0.9rem' : '1rem'
                   }}
+                  required
                 >
                   <option value="">Select fruit type</option>
-                  <option value="mango">Mango</option>
-                  <option value="guava">Guava</option>
-                  <option value="orange">Orange</option>
-                  <option value="cashew">Cashew</option>
-                  <option value="jackfruit">Jackfruit</option>
-                  <option value="avocado">Avocado</option>
-                  <option value="other">Other</option>
+                  {speciesLoading ? (
+                    <option value="">Loading...</option>
+                  ) : (
+                    speciesList.map(species => (
+                      <option key={species.id} value={species.name}>
+                        {species.name.charAt(0).toUpperCase() + species.name.slice(1)}
+                        {species.scientificName && ` (${species.scientificName})`}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
               
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Accessibility</label>
                 <select 
+                  name="accessibility"
+                  value={treeFormData.accessibility}
+                  onChange={handleFormChange}
                   style={{ 
                     width: '100%', 
                     padding: isMobile ? '0.5rem' : '0.75rem', 
@@ -393,6 +678,9 @@ const App: React.FC = () => {
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Description</label>
                 <textarea 
+                  name="description"
+                  value={treeFormData.description}
+                  onChange={handleFormChange}
                   placeholder="Describe the tree location, fruit quality, and any special instructions" 
                   rows={isMobile ? 2 : 3}
                   style={{ 
@@ -404,6 +692,18 @@ const App: React.FC = () => {
                   }}
                 />
               </div>
+              
+              {formError && (
+                <div style={{ 
+                  color: 'red', 
+                  marginBottom: '1rem', 
+                  padding: '0.5rem', 
+                  backgroundColor: '#ffe6e6', 
+                  borderRadius: '4px' 
+                }}>
+                  {formError}
+                </div>
+              )}
               
               <div style={{ display: 'flex', gap: isMobile ? '0.25rem' : '0.5rem', marginTop: '1.5rem' }}>
                 <button 
@@ -419,6 +719,7 @@ const App: React.FC = () => {
                     cursor: 'pointer',
                     fontSize: isMobile ? '0.8rem' : '1rem'
                   }}
+                  disabled={formSubmitting}
                 >
                   Cancel
                 </button>
@@ -426,16 +727,17 @@ const App: React.FC = () => {
                   type="submit"
                   style={{ 
                     flex: 1,
-                    backgroundColor: '#2E8B57', 
+                    backgroundColor: formSubmitting ? '#1a6d3c' : '#2E8B57', 
                     color: 'white',
                     border: 'none', 
                     padding: isMobile ? '0.5rem' : '0.75rem', 
                     borderRadius: '4px',
-                    cursor: 'pointer',
+                    cursor: formSubmitting ? 'wait' : 'pointer',
                     fontSize: isMobile ? '0.8rem' : '1rem'
                   }}
+                  disabled={formSubmitting}
                 >
-                  Submit Tree
+                  {formSubmitting ? 'Submitting...' : 'Submit Tree'}
                 </button>
               </div>
             </form>
@@ -458,6 +760,28 @@ const App: React.FC = () => {
               setShowAddTreeForm(false);
             }}
           />
+        )}
+        
+        {/* Toast Notification */}
+        {toast && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              padding: '15px 20px',
+              borderRadius: '4px',
+              color: 'white',
+              backgroundColor: toast.type === 'success' ? '#2E8B57' : 
+                             toast.type === 'error' ? '#e74c3c' : '#3498db',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1005,
+              maxWidth: '300px',
+              wordWrap: 'break-word'
+            }}
+          >
+            {toast.message}
+          </div>
         )}
       </main>
 
