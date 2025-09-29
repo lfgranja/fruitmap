@@ -1,10 +1,15 @@
-# Fruit Map Project Context
+# Qwen Code Context for Fruit Map Project
 
 ## Project Overview
 
-Fruit Map is an open-source platform to map fruit trees across Brazil, connecting people with accessible fruit trees in their communities. The project aims to create a mobile-responsive PWA application that allows users to discover, share, and locate fruit trees with seasonal information. It's a community-driven foraging map with location search, reviews, and a mobile-friendly design.
+Fruit Map is an open-source platform to map fruit trees across Brazil, connecting people with accessible fruit trees in their communities. It's a mobile-responsive PWA application that allows users to discover, share, and locate fruit trees with seasonal information. The project follows a three-tier architecture:
 
-### Key Features
+1. **Frontend Layer** - React PWA client with map interface
+2. **Backend Layer** - Node.js/Express API server with multiple services  
+3. **Data Layer** - PostgreSQL database with PostGIS extension
+
+## Key Features
+
 - Interactive map of fruit trees across Brazil using Leaflet.js and OpenStreetMap
 - Seasonal information by geographic region
 - Community-driven content contribution
@@ -13,7 +18,7 @@ Fruit Map is an open-source platform to map fruit trees across Brazil, connectin
 - User reviews and ratings
 - Location-based search with radius filtering
 
-### Technology Stack
+## Technology Stack
 
 **Frontend:**
 - React.js with TypeScript
@@ -39,32 +44,53 @@ Fruit Map is an open-source platform to map fruit trees across Brazil, connectin
 - CORS support
 - Rate limiting with express-rate-limit
 
-## Architecture
+## Development Guidelines
 
-The project follows a three-tier architecture:
-1. **Frontend Layer** - React PWA client with map interface
-2. **Backend Layer** - Node.js/Express API server with multiple services
-3. **Data Layer** - PostgreSQL database with PostGIS extension
+### Code Quality and Testing
+- Run linting: `npm run lint`
+- Type checking: `npx tsc --noEmit`
+- Run tests: `npm test`
+- Run builds: `npm run build`
+- Format code: `npx prettier --write .`
 
-The backend implements a service-oriented approach with distinct components for:
-- API Gateway
-- Authentication Service
-- Tree Management Service
-- Seasonal Data Service
-- File Upload Service
-- Notification Service
+### Development Workflow
+1. Create a detailed TODO list for the issue using `todo_write` tool
+2. Follow the Fruit Map style guide for coding standards
+3. Write tests for new functionality (Jest for backend, React Testing Library for frontend)
+4. Run existing tests to ensure nothing is broken
+5. Follow TDD (Test-Driven Development) where applicable
+6. Commit frequently with descriptive messages following Conventional Commits
 
-## Database Schema
+### Commit Guidelines
+Use the format: `type(scope): description`
+- **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- **Scopes**: `backend`, `frontend`, `map`, `api`, `database`, `auth`, `geospatial`, `mobile`, `seasonal`, `ui`
+- **Description**: Concise, imperative, lowercase first letter, no period
 
-The database uses PostgreSQL with PostGIS for geospatial capabilities and includes these core tables:
+### Style Guide
+- **Frontend/Backend**: Use `camelCase` for variables and functions, `PascalCase` for React components and TypeScript types
+- **CSS**: Use `kebab-case` for class names
+- **SQL**: Use `snake_case` for tables and columns, plural table names
+- Always use explicit TypeScript types and define interfaces for complex data structures
+- Prioritize geospatial query performance and security
 
-- **users**: User accounts and profiles
-- **tree_species**: Standardized list of fruit tree species
-- **trees**: Fruit tree locations and details with geospatial data
-- **tree_images**: Images associated with trees
-- **seasonal_data**: Seasonal information by region
-- **reviews**: User ratings and reviews
-- **reports**: Moderation reports
+## Geospatial Data Considerations
+
+The project heavily relies on geospatial data and PostGIS:
+- Use PostGIS functions for geospatial queries (ST_DWithin, ST_Contains, etc.)
+- Validate GeoJSON data before storage
+- Implement efficient spatial indexing
+- Consider performance implications of large geospatial datasets
+- Follow data privacy guidelines for location data
+- Validate coordinates in proper ranges (-90 to 90 for latitude, -180 to 180 for longitude)
+
+## Project Structure
+
+- `agentic/` - AI agent guidelines and development workflows
+- `backend/` - Node.js/Express API server with TypeScript
+- `docs/` - Project documentation
+- `frontend/` - React PWA client with map interface
+- `fruitmap/` - Additional project resources
 
 ## Building and Running
 
@@ -74,168 +100,18 @@ The database uses PostgreSQL with PostGIS for geospatial capabilities and includ
 - Git
 
 ### Installation Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/lfgranja/fruitmap.git
-   cd fruitmap
-   ```
+1. Install backend dependencies: `cd backend && npm install`
+2. Install frontend dependencies: `cd frontend && npm install`
+3. Set up environment variables: `cp .env.example .env` (in backend directory)
+4. Set up the database: `npm run migrate` (in backend directory)
+5. Run servers:
+   - Backend: `cd backend && npm run dev`
+   - Frontend: `cd frontend && npm start`
 
-2. Install backend dependencies:
-   ```bash
-   cd backend
-   npm install
-   ```
+## Important Documentation
 
-3. Install frontend dependencies:
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. Set up environment variables:
-   ```bash
-   # In the backend directory
-   cp .env.example .env
-   # Edit the .env file with your configuration
-   ```
-
-5. Set up the database:
-   ```bash
-   # Make sure PostgreSQL is running
-   # Create database and run migrations
-   cd backend
-   npm run migrate
-   ```
-
-6. Run the development servers:
-   ```bash
-   # Terminal 1: Start the backend
-   cd backend
-   npm run dev
-   
-   # Terminal 2: Start the frontend
-   cd frontend
-   npm start
-   ```
-
-### Key Scripts
-- `npm run dev` - Start development server with nodemon
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm run migrate` - Run database migrations
-- `npm run test` - Run tests
-- `npm run lint` - Run linting
-
-## Development Conventions
-
-### Code Style
-- Use 2 spaces for indentation
-- Follow Prettier formatting
-- Use descriptive variable and function names
-- Write JSDoc comments for exported functions
-- Use lowercase for SQL keywords in queries
-
-### Git Workflow
-- Create feature branches from `main`
-- Make commits with clear, descriptive messages following conventional commits format
-- Use rebase before submitting pull requests
-- Example commit messages:
-  - `feat: Add user authentication to API`
-  - `fix: Correct geospatial query for tree locations`
-  - `docs: Update API documentation for seasonal data`
-
-### Testing
-- Write unit tests using Jest
-- Include integration tests for API endpoints
-- Ensure all tests pass before submitting pull requests
-- Update tests when modifying existing functionality
-
-## Project Structure
-```
-fruit-map-app/
-├── backend/                 # Node.js/Express API server
-│   ├── src/
-│   │   ├── config/         # Configuration files
-│   │   ├── controllers/    # API controllers
-│   │   ├── middleware/     # Express middleware
-│   │   ├── migrations/     # Database migration scripts
-│   │   ├── models/         # Database models
-│   │   ├── routes/         # API route definitions
-│   │   ├── services/       # Business logic
-│   │   └── validations/    # Input validation schemas
-├── frontend/               # React PWA client
-│   ├── public/
-│   ├── src/
-│   │   ├── styles/
-│   │   ├── components/
-│   │   └── pages/
-├── docs/                   # Project documentation
-│   ├── System-Architecture.md
-│   ├── Database-Schema.md
-│   ├── MVP-and-Requirements.md
-│   └── Technology-Stack.md
-└── README.md               # Project overview
-```
-
-## API Endpoints
-
-The backend provides the following main API routes:
-- `/api/auth` - Authentication endpoints (login, register, etc.)
-- `/api/trees` - Tree management endpoints (CRUD, search, etc.)
-- `/api/reviews` - Review management endpoints
-- `/health` - Health check endpoint
-
-## Issue Tracking
-
-The project uses GitHub Issues for tracking work. Issues are organized into:
-- Epics for major work areas
-- User stories and tasks for specific features
-- Bug reports with detailed reproduction steps
-
-## Project Goals
-
-The project aims to:
-- Create an accessible platform for foraging fruit trees across Brazil
-- Build a community-driven platform where users can contribute and access fruit tree locations
-- Provide seasonal information to help users know when fruits are available in their regions
-- Encourage sustainable food access and connection with nature
-- Support both urban and rural communities in Brazil
-
-## Contribution Guidelines
-
-The project welcomes contributions from the community. Contributors should:
-- Follow the code of conduct emphasizing respect and inclusivity
-- Follow the established code style and development conventions
-- Write tests for new functionality
-- Update documentation as needed
-- Submit pull requests with clear descriptions
-- Focus on the project's mission of mapping fruit trees across Brazil
-
-The project maintains a "good first issue" label for newcomers and encourages community engagement through GitHub issues and discussions.
-
----
-
-## AGENTIC GUIDELINES FOR FRUIT MAP PROJECT
-
-FOLLOW STRICTLY WHAT IS DEFINED IN THE FOLLOWING AGENTIC FILES:
-- `/fruitmap/agentic/AGENTIC.md`
-- `/fruitmap/agentic/WORKFLOW.md` 
-- `/fruitmap/agentic/QWEN.md`
-- `/fruitmap/agentic/GEMINI.md`
-- `/fruitmap/agentic/POSTPR.md`
-- `/fruitmap/agentic/STYLEGUIDE.md`
-- `/fruitmap/agentic/SUMMARY.md`
-
-When performing tasks for the Fruit Map project:
-1. Adhere to the behavioral guidelines in `/fruitmap/agentic/AGENTIC.md`
-2. Follow the development workflow in `/fruitmap/agentic/WORKFLOW.md`
-3. Apply the code style guide in `/fruitmap/agentic/STYLEGUIDE.md`
-4. Implement the post-PR process in `/fruitmap/agentic/POSTPR.md`
-5. Use the specific agent guidelines in `/fruitmap/agentic/QWEN.md` or `/fruitmap/agentic/GEMINI.md`
-
-Special considerations for Fruit Map:
-- Prioritize mobile responsiveness and field usage scenarios
-- Follow geospatial data handling best practices using PostGIS
-- Consider seasonal data and regional variations
-- Focus on community-driven features
-- Optimize for map rendering and geospatial query performance
-- Follow security best practices, especially for location data privacy
+- `agentic/WORKFLOW.md` - Complete development workflow
+- `agentic/STYLEGUIDE.md` - Code style guide
+- `agentic/QWEN.md` - Qwen-specific directives
+- `CONTRIBUTING.md` - Contribution guidelines
+- `docs/` directory - Technical documentation
