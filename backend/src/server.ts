@@ -40,11 +40,13 @@ app.use(compression())
 import authRoutes from './src/routes/authRoutes'
 import treeRoutes from './src/routes/treeRoutes'
 import reviewRoutes from './src/routes/reviewRoutes'
+import speciesRoutes from './src/routes/speciesRoutes'
 
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/trees', treeRoutes)
 app.use('/api/reviews', reviewRoutes)
+app.use('/api/species', speciesRoutes)
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {

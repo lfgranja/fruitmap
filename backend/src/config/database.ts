@@ -2,6 +2,7 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 import * as path from 'path';
+import pg from 'pg';
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ if (databaseUrl && databaseUrl.startsWith('sqlite:')) {
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
     dialect: 'postgres',
-    dialectModule: require('pg'),
+    dialectModule: pg,
     dialectOptions: {
       ssl: process.env.NODE_ENV === 'production' ? { require: true, rejectUnauthorized: false } : false,
     },

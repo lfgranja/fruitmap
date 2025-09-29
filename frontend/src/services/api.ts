@@ -2,7 +2,7 @@
 import axios, { AxiosResponse } from 'axios';
 
 // Base API URL - will use environment variable or default to local development
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance with default configuration
 const apiClient = axios.create({
@@ -131,3 +131,16 @@ export const authAPI = {
 
 // Other API calls as needed
 export default apiClient;
+
+// Species-related API calls
+export const speciesAPI = {
+  // Get all species
+  getAllSpecies: (): Promise<AxiosResponse> => {
+    return apiClient.get('/species');
+  },
+
+  // Get species by ID
+  getSpeciesById: (id: string): Promise<AxiosResponse> => {
+    return apiClient.get(`/species/${id}`);
+  },
+};

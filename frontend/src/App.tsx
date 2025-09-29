@@ -44,6 +44,10 @@ const App: React.FC = () => {
   });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  
+  // State for species data
+  const [speciesList, setSpeciesList] = useState<{id: number, name: string, scientificName?: string}[]>([]);
+  const [speciesLoading, setSpeciesLoading] = useState(true);
 
   // Handle window resize for responsive behavior
   useEffect(() => {
@@ -61,19 +65,30 @@ const App: React.FC = () => {
       try {
         // Try to load from API first
         const response = await treeAPI.getAllTrees();
-        setTrees(response.data.trees.map((tree: any) => ({
-          id: tree.id,
-          position: [
-            JSON.parse(tree.location).coordinates[1], // latitude
-            JSON.parse(tree.location).coordinates[0]  // longitude
-          ],
-          title: tree.title,
-          species: tree.species?.name || 'Unknown',
-          season: 'Year-round', // Will be updated when seasonal data API is available
-          description: tree.description,
-          accessibility: tree.accessibility,
-          contributor: tree.contributor?.username
-        })));
+        setTrees(response.data.trees.map((tree: { id: string; location: string; title: string; species?: { name?: string }; description?: string; accessibility?: string; contributor?: { username?: string } }) => ({
+          let coordinates = [0, 0];
+          try {
+            const locationData = JSON.parse(tree.location);
+            if (locationData.coordinates && locationData.coordinates.length >= 2) {
+              coordinates = [locationData.coordinates[1], locationData.coordinates[0]]; // [latitude, longitude]
+            }
+          } catch (parseError) {
+            console.error('Error parsing tree location:', parseError);
+            // Use default coordinates if parsing fails
+            coordinates = [0, 0];
+          }
+          
+          return {
+            id: tree.id,
+            position: coordinates,
+            title: tree.title,
+            species: tree.species?.name || 'Unknown',
+            season: 'Year-round', // Will be updated when seasonal data API is available
+            description: tree.description,
+            accessibility: tree.accessibility,
+            contributor: tree.contributor?.username
+          };
+        }));
       } catch (error) {
         console.error('Error fetching trees:', error);
         
@@ -134,7 +149,34 @@ const App: React.FC = () => {
     fetchTrees();
   }, []);
 
-  const handleMapClick = (e: any) => {
+  // Load species data
+  useEffect(() => {
+    const fetchSpecies = async () => {
+      try {
+        // Try to load species from API
+        const response = await speciesAPI.getAllSpecies();
+        setSpeciesList(response.data.species);
+      } catch (error) {
+        console.error('Error fetching species:', error);
+        // Fallback to hardcoded species if API fails
+        setSpeciesList([
+          { id: 1, name: 'mango', scientificName: 'Mangifera indica' },
+          { id: 2, name: 'guava', scientificName: 'Psidium guajava' },
+          { id: 3, name: 'orange', scientificName: 'Citrus sinensis' },
+          { id: 4, name: 'cashew', scientificName: 'Anacardium occidentale' },
+          { id: 5, name: 'jackfruit', scientificName: 'Artocarpus heterophyllus' },
+          { id: 6, name: 'avocado', scientificName: 'Persea americana' },
+          { id: 7, name: 'other', scientificName: 'Other fruit species' }
+        ]);
+      } finally {
+        setSpeciesLoading(false);
+      }
+    };
+
+    fetchSpecies();
+  }, []);
+
+  const handleMapClick = (e: { latlng: { lat: number; lng: number } }) => {
     // Handle map click for adding new tree
     console.log('Map clicked at:', e.latlng);
   };
@@ -171,18 +213,14 @@ const App: React.FC = () => {
         coordinates: [mapCenter[1], mapCenter[0]] // [longitude, latitude]
       };
 
-      // Map species name to species ID (in a real app, this would come from a lookup)
-      const speciesMap: { [key: string]: number } = {
-        'mango': 1,
-        'guava': 2,
-        'orange': 3,
-        'cashew': 4,
-        'jackfruit': 5,
-        'avocado': 6,
-        'other': 7
-      };
+      // Find the species ID from the species list
+      const selectedSpecies = speciesList.find(species => species.name === treeFormData.species);
+      const speciesId = selectedSpecies ? selectedSpecies.id : 1; // Default to 1 if not found
       
-      const speciesId = speciesMap[treeFormData.species] || 1; // Default to 1 if not found
+      // Validate that we have a valid species
+      if (!selectedSpecies) {
+        throw new Error('Please select a valid fruit type.');
+      }
 
       // Create the tree data object
       const treeData = {
@@ -221,7 +259,7 @@ const App: React.FC = () => {
       
       // Show success message (in a real app, you might use a toast notification)
       alert('Tree added successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding tree:', error);
       setFormError(error.response?.data?.error || 'Failed to add tree. Please try again.');
     } finally {
@@ -484,13 +522,16 @@ const App: React.FC = () => {
                   required
                 >
                   <option value="">Select fruit type</option>
-                  <option value="mango">Mango</option>
-                  <option value="guava">Guava</option>
-                  <option value="orange">Orange</option>
-                  <option value="cashew">Cashew</option>
-                  <option value="jackfruit">Jackfruit</option>
-                  <option value="avocado">Avocado</option>
-                  <option value="other">Other</option>
+                  {speciesLoading ? (
+                    <option value="">Loading...</option>
+                  ) : (
+                    speciesList.map(species => (
+                      <option key={species.id} value={species.name}>
+                        {species.name.charAt(0).toUpperCase() + species.name.slice(1)}
+                        {species.scientificName && ` (${species.scientificName})`}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
               
