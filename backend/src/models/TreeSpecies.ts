@@ -13,7 +13,7 @@ interface TreeSpeciesAttributes {
   updatedAt: Date;
 }
 
-interface TreeSpeciesCreationAttributes extends Optional<TreeSpeciesAttributes, 'id' | 'scientificName' | 'description' | 'isNative' | 'nutritionalInfo' | 'createdAt' | 'updatedAt'> {}
+interface TreeSpeciesCreationAttributes extends Optional<TreeSpeciesAttributes, 'id' | 'scientificName' | 'description' | 'isNative' | 'nutritionalInfo'> {}
 
 class TreeSpecies extends Model<TreeSpeciesAttributes, TreeSpeciesCreationAttributes> implements TreeSpeciesAttributes {
   public id!: number;
@@ -56,9 +56,20 @@ TreeSpecies.init({
     type: DataTypes.JSON, // Store as JSON object
     allowNull: true,
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
 }, {
   tableName: 'tree_species',
   sequelize,
+  timestamps: true,
 });
 
 export default TreeSpecies;

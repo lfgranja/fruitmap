@@ -58,7 +58,7 @@ This project uses AI agent guidelines for development, which are stored in the `
 - [`agentic/WORKFLOW.md`](agentic/WORKFLOW.md) - Development workflow for Fruit Map project
 - [`agentic/POSTPR.md`](agentic/POSTPR.md) - Post-PR approval process documentation
 - [`agentic/QWEN.md`](agentic/QWEN.md) - Qwen-specific directives
-- [`agentic/GEMINI.md`](agentic/GEMINI.md) - Gemini-specific guidelines
+- [`GEMINI.md`](GEMINI.md) - Gemini-specific guidelines
 - [`agentic/STYLEGUIDE.md`](agentic/STYLEGUIDE.md) - Code style guide for Fruit Map
 
 ## Building and Running

@@ -59,10 +59,10 @@ The qodo-merge-pro bot identified additional concerns:
 1. **Database Configuration**:
    - Using require() for pg module instead of import
    - SQLite path resolution with process.cwd() could be problematic in deployments
+2. **Sequelize Association Alias Conflict**:
+   - Resolved by removing redundant association definition from `backend/src/models/Tree.ts` and reverting the `treeContributor` alias back to `contributor` in `backend/src/models/index.ts`.
 
-### Documentation
-- Comprehensive documentation added in agentic/ directory
-- Style guide duplicated (both in agentic/STYLEGUIDE.md and styleguide.md)
+
 
 ## Security Considerations
 - Potential token handling issues with localStorage
@@ -84,24 +84,25 @@ The local repository state is ahead of the main branch with the tree submission 
 ## TODO List (Prioritized)
 
 ### Critical (Address immediately)
-1. Fix API URL inconsistency - update fallback URL in `frontend/src/services/api.ts` to `http://localhost:5000/api`
-2. Remove unsafe JSON.parse() and add try-catch for location parsing
-3. Replace hardcoded species map with dynamic API call to fetch species list
+1. [DONE] Fix API URL inconsistency - update fallback URL in `frontend/src/services/api.ts` to `http://localhost:5000/api`
+2. [DONE] Remove unsafe JSON.parse() and add try-catch for location parsing
+3. [DONE] Replace hardcoded species map with dynamic API call to fetch species list
 
 ### High Priority
-4. Implement proper location selection from map instead of hardcoded map center
-5. Replace alert() with proper notification system
-6. Add proper TypeScript interfaces for API responses
-7. Update PR to reference correct issue instead of testing epic
+4. [DONE] Implement proper location selection from map instead of hardcoded map center
+5. [DONE] Replace alert() with proper notification system
+6. [DONE] Add proper TypeScript interfaces for API responses
+7. [DONE] Update PR to reference correct issue instead of testing epic
 
 ### Medium Priority
-8. Add comprehensive tests for frontend and backend functionality
-9. Implement proper error handling for all API calls
-10. Add input validation for tree submission form
-11. Correct import syntax for 'pg' module in database.ts
-12. Add comment explaining TypeScript version downgrade in package.json
+8. [DONE] Add comprehensive tests for frontend and backend functionality
+9. [DONE] Implement proper error handling for all API calls
+10. [DONE] Add input validation for tree submission form
+11. [DONE] Correct import syntax for 'pg' module in database.ts
+12. [DONE] Add comment explaining TypeScript version downgrade in package.json
+13. [DONE] Resolve SequelizeAssociationError by centralizing model associations and reverting alias
 
 ### Low Priority
-13. Remove duplicate style guide file (keep only agentic/STYLEGUIDE.md)
-14. Add more detailed documentation to API endpoints
-15. Consider implementing toast notifications for better UX
+14. [DONE] Remove duplicate style guide file (keep only agentic/STYLEGUIDE.md)
+15. [DONE] Add more detailed documentation to API endpoints
+16. [DONE] Consider implementing toast notifications for better UX
