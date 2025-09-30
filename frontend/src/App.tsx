@@ -277,29 +277,12 @@ const App: React.FC = () => {
       return false;
     }
     
-    // Validate coordinates
-    const [lat, lng] = newTreePosition;
-    if (lat < -90 || lat > 90) {
-      setFormError('Invalid latitude. Must be between -90 and 90 degrees.');
-      return false;
-    }
-    
-    if (lng < -180 || lng > 180) {
-      setFormError('Invalid longitude. Must be between -180 and 180 degrees.');
-      return false;
-    }
-    
     return true;
   };
 
   // Handle form submission
   const handleSubmitTree = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Prevent duplicate submissions
-    if (formSubmitting) {
-      return;
-    }
     
     // Validate inputs before proceeding
     if (!validateForm()) {
