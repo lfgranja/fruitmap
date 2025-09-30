@@ -11,8 +11,14 @@
     "test:watch": "jest --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "migrate": "node dist/migration-runner.js",
-    "seed": "node dist/seed.js"
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo",
+    "seed": "sequelize db:seed",
+    "seed:undo": "sequelize db:seed:undo",
+    "db:migrate": "npx sequelize-cli db:migrate --config src/config/database.ts --migrations-path src/migrations --models-path src/models --require ts-node/register",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo --config src/config/database.ts --migrations-path src/migrations --models-path src/models --require ts-node/register",
+    "db:seed": "npx sequelize-cli db:seed --config src/config/database.ts --seeders-path src/seeders --models-path src/models --require ts-node/register",
+    "db:seed:undo": "npx sequelize-cli db:seed:undo --config src/config/database.ts --seeders-path src/seeders --models-path src/models --require ts-node/register"
   },
   "keywords": [
     "fruit",
@@ -61,6 +67,7 @@
     "globals": "^16.4.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.9",
+    "sequelize-cli": "^6.6.3",
     "supertest": "^7.1.4",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.1",

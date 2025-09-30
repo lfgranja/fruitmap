@@ -15,7 +15,8 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  setupFilesAfterEnv: ['./jest.setup.js'],
+  globalSetup: './jest.setup.js',
+  globalTeardown: './jest.teardown.js',
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1"
   },

@@ -1,7 +1,7 @@
 // src/services/authService.ts
 import { Op } from 'sequelize';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import User from '../models/User';
 import db from '../models';
 
@@ -94,8 +94,7 @@ class AuthService {
   }
 
   private generateToken(payload: TokenPayload): string {
-    // @ts-ignore
-    return jwt.sign(payload, this.jwtSecret as any, { expiresIn: this.jwtExpiry } as SignOptions);
+    return jwt.sign(payload, this.jwtSecret, { expiresIn: this.jwtExpiry });
   }
 
   async verifyToken(token: string): Promise<TokenPayload> {
