@@ -119,7 +119,6 @@ Tree.init({
   },
 });
 
-// Define associations
-Tree.belongsTo(User, { foreignKey: 'contributorId', as: 'contributor' });
+
 
 export default Tree;
