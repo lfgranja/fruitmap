@@ -58,6 +58,13 @@ class AuthService {
     return jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1h' });
   }
 
+  /**
+   * Verifies a JWT token. This operation is synchronous.
+   * @param token The JWT token to verify.
+   * @returns The decoded token payload.
+   * @throws {ExpiredTokenError} If the token has expired.
+   * @throws {InvalidTokenError} If the token is invalid or malformed.
+   */
   verifyToken(token: string): { id: string; email: string } {
     try {
       return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;

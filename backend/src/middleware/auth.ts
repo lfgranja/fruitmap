@@ -27,7 +27,8 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (error instanceof InvalidTokenError) {
       return res.status(401).json({ error: error.message });
     }
-    res.status(400).json({ error: 'An unexpected error occurred.' });
+    console.error('Unexpected error during authentication:', error);
+    res.status(500).json({ error: 'An internal server error occurred during authentication.' });
   }
 };
 
