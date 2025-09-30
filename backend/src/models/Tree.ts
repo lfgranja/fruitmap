@@ -1,7 +1,9 @@
 // src/models/Tree.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
-import User from './User';
+import User from './User'; // Import User model
+import TreeSpecies from './TreeSpecies'; // Import TreeSpecies model
+import { Review } from './Review'; // Import Review model
 
 interface TreeAttributes {
   id: string;
@@ -36,6 +38,12 @@ class Tree extends Model<TreeAttributes, TreeCreationAttributes> implements Tree
 
   // Association methods
   public getUser!: () => Promise<User>;
+
+  static associate(models: any) {
+    Tree.belongsTo(models.User, { foreignKey: 'contributorId', as: 'treeContributor' }); // Use treeContributor alias
+    Tree.belongsTo(models.TreeSpecies, { foreignKey: 'speciesId', as: 'species' });
+    Tree.hasMany(models.Review, { foreignKey: 'treeId', as: 'reviews' });
+  }
 }
 
 Tree.init({
@@ -85,6 +93,16 @@ Tree.init({
       isIn: [['active', 'inactive', 'seasonal', 'removed']],
     },
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
 }, {
   tableName: 'trees',
   sequelize,
@@ -107,8 +125,5 @@ Tree.init({
     },
   },
 });
-
-// Define associations
-Tree.belongsTo(User, { foreignKey: 'contributorId', as: 'contributor' });
 
 export default Tree;

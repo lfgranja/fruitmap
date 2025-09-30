@@ -1,6 +1,8 @@
 // src/models/User.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
+import Tree from './Tree'; // Import Tree model
+import { Review } from './Review'; // Import Review model
 
 interface UserAttributes {
   id: string;
@@ -30,6 +32,11 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   // Timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  static associate(models: any) {
+    User.hasMany(models.Tree, { foreignKey: 'contributorId', as: 'contributedTrees' });
+    User.hasMany(models.Review, { foreignKey: 'userId', as: 'reviews' });
+  }
 }
 
 User.init({

@@ -1,21 +1,34 @@
-// src/models/index.ts
+
 import { Sequelize } from 'sequelize';
 import User from './User';
 import Tree from './Tree';
 import TreeSpecies from './TreeSpecies';
+import { Review } from './Review';
 import sequelize from '../config/database';
 
-// Define associations
-User.hasMany(Tree, { foreignKey: 'contributorId', as: 'contributedTrees' });
-Tree.belongsTo(User, { foreignKey: 'contributorId', as: 'contributor' });
+interface Models {
+  User: typeof User;
+  Tree: typeof Tree;
+  TreeSpecies: typeof TreeSpecies;
+  Review: typeof Review;
+  [key: string]: any;
+}
 
-TreeSpecies.hasMany(Tree, { foreignKey: 'speciesId', as: 'trees' });
-Tree.belongsTo(TreeSpecies, { foreignKey: 'speciesId', as: 'species' });
-
-const db = {
+const models: Models = {
   User,
   Tree,
   TreeSpecies,
+  Review,
+};
+
+Object.values(models).forEach((model) => {
+  if (model.associate) {
+    model.associate(models);
+  }
+});
+
+const db = {
+  ...models,
   sequelize,
 };
 

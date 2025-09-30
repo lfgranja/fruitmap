@@ -20,8 +20,9 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const decoded = await authService.verifyToken(token);
     req.user = decoded;
     next();
+    return;
   } catch (error) {
-    res.status(400).json({ error: 'Invalid token.' });
+    return res.status(400).json({ error: 'Invalid token.' });
   }
 };
 

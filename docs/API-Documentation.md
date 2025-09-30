@@ -1,3 +1,4 @@
+
 # Fruit Map API Documentation
 
 ## Base URL
@@ -177,6 +178,133 @@ Search for trees with various criteria.
 ```json
 {
   "trees": [...]
+}
+```
+
+### Reviews
+
+#### POST /reviews
+Create a new review for a tree.
+
+**Headers:**
+- `Content-Type: application/json`
+- `Authorization: Bearer <jwt-token>`
+
+**Request Body:**
+```json
+{
+  "treeId": "string",
+  "rating": number,
+  "comment": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Review created successfully",
+  "review": {
+    "id": "string",
+    "treeId": "string",
+    "userId": "string",
+    "rating": number,
+    "comment": "string",
+    "createdAt": "date",
+    "updatedAt": "date"
+  }
+}
+```
+
+#### GET /reviews/tree/:treeId
+Get reviews for a specific tree.
+
+**Parameters:**
+- `limit` (optional): Limit number of results (default: 10)
+- `page` (optional): Page number for pagination (default: 1)
+
+**Response:**
+```json
+{
+  "reviews": [
+    {
+      "id": "string",
+      "rating": number,
+      "comment": "string",
+      "createdAt": "date",
+      "user": {
+        "username": "string",
+        "fullName": "string"
+      }
+    }
+  ],
+  "pagination": {
+    "total": number,
+    "limit": number,
+    "page": number,
+    "pages": number,
+    "averageRating": number
+  }
+}
+```
+
+#### PATCH /reviews/:reviewId
+Update an existing review.
+
+**Headers:**
+- `Content-Type: application/json`
+- `Authorization: Bearer <jwt-token>`
+
+**Request Body (all fields optional):**
+```json
+{
+  "rating": number,
+  "comment": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Review updated successfully",
+  "review": {
+    "id": "string",
+    "treeId": "string",
+    "userId": "string",
+    "rating": number,
+    "comment": "string",
+    "createdAt": "date",
+    "updatedAt": "date"
+  }
+}
+```
+
+#### DELETE /reviews/:reviewId
+Delete a review.
+
+**Headers:**
+- `Authorization: Bearer <jwt-token>`
+
+**Response:**
+```json
+{
+  "message": "Review deleted successfully"
+}
+```
+
+#### GET /reviews/tree/:treeId/stats
+Get review statistics for a specific tree.
+
+**Response:**
+```json
+{
+  "averageRating": number,
+  "reviewCount": number,
+  "ratingDistribution": [
+    {
+      "rating": number,
+      "count": number
+    }
+  ]
 }
 ```
 

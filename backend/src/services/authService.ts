@@ -1,4 +1,5 @@
 // src/services/authService.ts
+import { Op } from 'sequelize';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
@@ -34,7 +35,7 @@ class AuthService {
     // Check if user already exists
     const existingUser = await db.User.findOne({
       where: {
-        $or: [
+        [Op.or]: [
           { email: userData.email },
           { username: userData.username }
         ]
@@ -93,7 +94,8 @@ class AuthService {
   }
 
   private generateToken(payload: TokenPayload): string {
-    return jwt.sign(payload, this.jwtSecret, { expiresIn: this.jwtExpiry });
+    // @ts-ignore
+    return jwt.sign(payload, this.jwtSecret as any, { expiresIn: this.jwtExpiry } as SignOptions);
   }
 
   async verifyToken(token: string): Promise<TokenPayload> {
