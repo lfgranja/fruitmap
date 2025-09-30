@@ -17,7 +17,7 @@ interface TreeAttributes {
   updatedAt: Date;
 }
 
-interface TreeCreationAttributes extends Optional<TreeAttributes, 'id' | 'description' | 'isVerified' | 'status' | 'createdAt' | 'updatedAt'> {}
+interface TreeCreationAttributes extends Optional<TreeAttributes, 'id' | 'description' | 'isVerified' | 'status'> {}
 
 class Tree extends Model<TreeAttributes, TreeCreationAttributes> implements TreeAttributes {
   public id!: string;
@@ -85,9 +85,20 @@ Tree.init({
       isIn: [['active', 'inactive', 'seasonal', 'removed']],
     },
   },
+  createdAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
 }, {
   tableName: 'trees',
   sequelize,
+  timestamps: true,
   hooks: {
     beforeCreate: (tree) => {
       // Ensure location is properly formatted

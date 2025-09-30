@@ -7,7 +7,7 @@ import sequelize from '../config/database';
 
 // Define associations
 User.hasMany(Tree, { foreignKey: 'contributorId', as: 'contributedTrees' });
-Tree.belongsTo(User, { foreignKey: 'contributorId', as: 'contributor' });
+Tree.belongsTo(User, { foreignKey: 'contributorId', as: 'treeContributor' });
 
 TreeSpecies.hasMany(Tree, { foreignKey: 'speciesId', as: 'trees' });
 Tree.belongsTo(TreeSpecies, { foreignKey: 'speciesId', as: 'species' });
