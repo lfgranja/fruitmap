@@ -8,26 +8,12 @@ The API base URL depends on the environment:
 The frontend will use the `REACT_APP_API_URL` environment variable, defaulting to `http://localhost:5000/api` if not provided.
 
 ## Authentication
-
-### AuthService
-The `AuthService` is responsible for generating and verifying JSON Web Tokens (JWTs) used for user authentication. It provides methods to create new tokens upon successful login/registration and to validate incoming tokens from authenticated requests.
-
-**Token Generation:**
-- `generateToken(user: { id: string; email: string }): string`
-  - Creates a new JWT for the given user payload.
-
-**Token Verification:**
-- `verifyToken(token: string): { id: string; email: string }`
-  - Verifies the authenticity and validity of a given JWT.
-  - Throws `InvalidTokenError` for malformed or invalid tokens.
-  - Throws `ExpiredTokenError` for tokens that have passed their expiration time.
-
 Most endpoints require authentication using JWT tokens. The token should be included in the Authorization header as a Bearer token:
 ```
 Authorization: Bearer <jwt-token>
 ```
 
-### API Endpoints
+## API Endpoints
 
 ### Trees
 
@@ -191,6 +177,133 @@ Search for trees with various criteria.
 ```json
 {
   "trees": [...]
+}
+```
+
+### Reviews
+
+#### POST /reviews
+Create a new review for a tree.
+
+**Headers:**
+- `Content-Type: application/json`
+- `Authorization: Bearer <jwt-token>`
+
+**Request Body:**
+```json
+{
+  "treeId": "string",
+  "rating": number,
+  "comment": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Review created successfully",
+  "review": {
+    "id": "string",
+    "treeId": "string",
+    "userId": "string",
+    "rating": number,
+    "comment": "string",
+    "createdAt": "date",
+    "updatedAt": "date"
+  }
+}
+```
+
+#### GET /reviews/tree/:treeId
+Get reviews for a specific tree.
+
+**Parameters:**
+- `limit` (optional): Limit number of results (default: 10)
+- `page` (optional): Page number for pagination (default: 1)
+
+**Response:**
+```json
+{
+  "reviews": [
+    {
+      "id": "string",
+      "rating": number,
+      "comment": "string",
+      "createdAt": "date",
+      "user": {
+        "username": "string",
+        "fullName": "string"
+      }
+    }
+  ],
+  "pagination": {
+    "total": number,
+    "limit": number,
+    "page": number,
+    "pages": number,
+    "averageRating": number
+  }
+}
+```
+
+#### PATCH /reviews/:reviewId
+Update an existing review.
+
+**Headers:**
+- `Content-Type: application/json`
+- `Authorization: Bearer <jwt-token>`
+
+**Request Body (all fields optional):**
+```json
+{
+  "rating": number,
+  "comment": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Review updated successfully",
+  "review": {
+    "id": "string",
+    "treeId": "string",
+    "userId": "string",
+    "rating": number,
+    "comment": "string",
+    "createdAt": "date",
+    "updatedAt": "date"
+  }
+}
+```
+
+#### DELETE /reviews/:reviewId
+Delete a review.
+
+**Headers:**
+- `Authorization: Bearer <jwt-token>`
+
+**Response:**
+```json
+{
+  "message": "Review deleted successfully"
+}
+```
+
+#### GET /reviews/tree/:treeId/stats
+Get review statistics for a specific tree.
+
+**Response:**
+```json
+{
+  "averageRating": number,
+  "reviewCount": number,
+  "ratingDistribution": [
+    {
+      "rating": number,
+      "count": number
+    }
+  ]
 }
 ```
 
