@@ -1,26 +1,9 @@
+// src/services/authService.ts
+import { Op } from 'sequelize';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import User from '../models/User';
 import db from '../models';
-import { Op } from 'sequelize'; // Import Op for Sequelize operators
-
-let JWT_SECRET: string;
-
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('FATAL ERROR: JWT_SECRET environment variable is not set in production.');
-  } else {
-    JWT_SECRET = process.env.JWT_SECRET;
-  }
-} else {
-  // Development or test environment
-  if (!process.env.JWT_SECRET) {
-    console.warn('Warning: JWT_SECRET is not set. Using a default secret for development. Do not use in production.');
-    JWT_SECRET = 'supersecretjwtkey_for_dev_only';
-  } else {
-    JWT_SECRET = process.env.JWT_SECRET;
-  }
-}
 
 interface LoginCredentials {
   email: string;
@@ -39,44 +22,13 @@ interface TokenPayload {
   email: string;
 }
 
-class InvalidTokenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidTokenError';
-  }
-}
-
-class ExpiredTokenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ExpiredTokenError';
-  }
-}
-
 class AuthService {
-  generateToken(user: { id: string; email: string }): string {
-    return jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: '1h' });
-  }
+  private jwtSecret: string;
+  private jwtExpiry: string;
 
-  /**
-   * Verifies a JWT token. This operation is synchronous.
-   * @param token The JWT token to verify.
-   * @returns The decoded token payload.
-   * @throws {ExpiredTokenError} If the token has expired.
-   * @throws {InvalidTokenError} If the token is invalid or malformed.
-   */
-  verifyToken(token: string): { id: string; email: string } {
-    try {
-      return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new ExpiredTokenError('Token has expired.');
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new InvalidTokenError('Invalid token.');
-      }
-      throw error;
-    }
+  constructor() {
+    this.jwtSecret = process.env.JWT_SECRET || 'fallback_jwt_secret_for_dev';
+    this.jwtExpiry = process.env.JWT_EXPIRY || '24h';
   }
 
   async register(userData: RegisterData): Promise<{ user: User; token: string }> {
@@ -131,9 +83,9 @@ class AuthService {
     }
 
     // Check if account is active
-    // if (!user.isActive) {
-    //   throw new Error('Account is deactivated');
-    // }
+    if (!user.isActive) {
+      throw new Error('Account is deactivated');
+    }
 
     // Generate JWT
     const token = this.generateToken({ id: user.id, email: user.email });
@@ -141,10 +93,22 @@ class AuthService {
     return { user, token };
   }
 
+  private generateToken(payload: TokenPayload): string {
+    return jwt.sign(payload, this.jwtSecret, { expiresIn: this.jwtExpiry } as SignOptions);
+  }
+
+  async verifyToken(token: string): Promise<TokenPayload> {
+    try {
+      const decoded = jwt.verify(token, this.jwtSecret) as TokenPayload;
+      return decoded;
+    } catch (error) {
+      throw new Error('Invalid or expired token');
+    }
+  }
+
   async getUserById(id: string): Promise<User | null> {
     return await db.User.findByPk(id);
   }
 }
 
-export { InvalidTokenError, ExpiredTokenError };
 export default new AuthService();
