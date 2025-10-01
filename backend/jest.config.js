@@ -13,9 +13,9 @@ module.exports = {
     "**/?(*.)+(spec|test).+(ts|tsx|js)"
   ],
   transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest"
+    "^.+\.(ts|tsx)$": "ts-jest"
   },
-  setupFilesAfterEnv: ['./jest.setup.js'],
+  globalSetup: './jest.setup.js',
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1"
   },

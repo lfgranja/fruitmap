@@ -1,5 +1,10 @@
 const db = require('./src/models').default;
 
 module.exports = async () => {
-  await db.sequelize.sync({ force: true });
+  try {
+    await db.sequelize.sync({ force: true });
+  } catch (error) {
+    console.error('Error during test database setup:', error);
+    throw error;
+  }
 };
