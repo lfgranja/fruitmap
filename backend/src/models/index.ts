@@ -3,7 +3,7 @@ import { Sequelize } from 'sequelize';
 import User from './User';
 import Tree from './Tree';
 import TreeSpecies from './TreeSpecies';
-import { Review } from './Review';
+import Review from './Review';
 import sequelize from '../config/database';
 
 interface Models {

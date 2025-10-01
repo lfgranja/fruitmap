@@ -1,6 +1,6 @@
 
 import db from '../models';
-import type { Review } from '../models/Review';
+import type Review from '../models/Review';
 
 interface ReviewData {
   treeId: string;

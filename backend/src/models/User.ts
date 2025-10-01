@@ -2,7 +2,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 import Tree from './Tree'; // Import Tree model
-import { Review } from './Review'; // Import Review model
+import Review from './Review'; // Import Review model
 
 interface UserAttributes {
   id: string;

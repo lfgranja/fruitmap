@@ -17,7 +17,7 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5" // Downgraded from ^5.0.4 to maintain compatibility with react-scripts 5.0.1
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -44,6 +44,13 @@
     ]
   },
   "devDependencies": {
-    "@types/leaflet": "^1.9.3"
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
+    "@types/leaflet": "^1.9.3",
+    "axios-mock-adapter": "^2.1.0",
+    "babel-jest": "^30.2.0",
+    "identity-obj-proxy": "^3.0.0",
+    "ts-jest": "^29.4.4"
   }
 }

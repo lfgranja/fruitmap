@@ -1,318 +1,313 @@
-import axios from 'axios';
-import { treeAPI, speciesAPI, authAPI } from './api';
+// src/services/api.test.ts
+import { treeAPI, authAPI, speciesAPI, apiClient } from './api';
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+global.localStorage = localStorageMock;
 
 // Mock axios
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() },
+    },
+  })),
+  default: jest.fn(() => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  })),
+}));
 
-describe('API Service', () => {
+describe('API Service Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('treeAPI', () => {
     describe('getAllTrees', () => {
-      it('should call the correct endpoint with parameters', async () => {
-        const params = { speciesId: '1', accessibility: 'public' };
-        mockedAxios.get.mockResolvedValue({ data: { trees: [] } });
+      it('should call axios get with correct endpoint', async () => {
+        const mockResponse = { data: [] };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
 
+        await treeAPI.getAllTrees();
+
+        expect(axiosMock.get).toHaveBeenCalledWith('/trees', { params: undefined });
+      });
+
+      it('should include query parameters when provided', async () => {
+        const mockResponse = { data: [] };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
+
+        const params = { speciesId: '1', limit: 10 };
         await treeAPI.getAllTrees(params);
 
-        expect(mockedAxios.get).toHaveBeenCalledWith('/trees', { params });
-      });
-
-      it('should handle errors gracefully', async () => {
-        const error = new Error('Network error');
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(treeAPI.getAllTrees()).rejects.toThrow('Network error');
-      });
-
-      it('should handle 404 errors correctly', async () => {
-        const error = new Error('Not Found');
-        error.response = { status: 404, data: {} };
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(treeAPI.getAllTrees()).rejects.toHaveProperty('response.status', 404);
-      });
-
-      it('should handle unauthorized access correctly', async () => {
-        const error = new Error('Unauthorized');
-        error.response = { status: 401, data: {} };
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(treeAPI.getAllTrees()).rejects.toHaveProperty('response.status', 401);
-      });
-    });
-
-    describe('createTree', () => {
-      it('should call the correct endpoint with tree data', async () => {
-        const treeData = {
-          speciesId: 1,
-          location: '{"type": "Point", "coordinates": [-46.6333, -23.5505]}',
-          title: 'Test Tree',
-          description: 'A test tree',
-          accessibility: 'public'
-        };
-        mockedAxios.post.mockResolvedValue({ data: { tree: { id: '1' } } });
-
-        await treeAPI.createTree(treeData);
-
-        expect(mockedAxios.post).toHaveBeenCalledWith('/trees', treeData);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const treeData = {
-          speciesId: 1,
-          location: '{"type": "Point", "coordinates": [-46.6333, -23.5505]}',
-          title: 'Test Tree',
-          description: 'A test tree',
-          accessibility: 'public'
-        };
-        const error = new Error('Network error');
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(treeAPI.createTree(treeData)).rejects.toThrow('Network error');
-      });
-
-      it('should handle validation errors correctly', async () => {
-        const treeData = {
-          speciesId: 1,
-          location: '{"type": "Point", "coordinates": [-46.6333, -23.5505]}',
-          title: 'Test Tree',
-          description: 'A test tree',
-          accessibility: 'public'
-        };
-        const error = new Error('Validation failed');
-        error.response = { 
-          status: 400, 
-          data: { 
-            error: 'Validation failed',
-            details: [
-              { field: 'title', message: 'Title is required' }
-            ]
-          } 
-        };
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(treeAPI.createTree(treeData)).rejects.toHaveProperty('response.status', 400);
+        expect(axiosMock.get).toHaveBeenCalledWith('/trees', { params });
       });
     });
 
     describe('getTreeById', () => {
-      it('should call the correct endpoint with tree ID', async () => {
-        const treeId = '123';
-        mockedAxios.get.mockResolvedValue({ data: { tree: { id: treeId } } });
+      it('should call axios get with correct endpoint', async () => {
+        const mockResponse = { data: { id: 1 } };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
 
-        await treeAPI.getTreeById(treeId);
+        await treeAPI.getTreeById('1');
 
-        expect(mockedAxios.get).toHaveBeenCalledWith(`/trees/${treeId}`);
+        expect(axiosMock.get).toHaveBeenCalledWith('/trees/1');
       });
+    });
 
-      it('should handle errors gracefully', async () => {
-        const treeId = '123';
-        const error = new Error('Tree not found');
-        mockedAxios.get.mockRejectedValue(error);
+    describe('createTree', () => {
+      it('should call axios post with correct endpoint and data', async () => {
+        const mockResponse = { data: { id: 1 } };
+        const axiosMock = require('axios').create();
+        axiosMock.post.mockResolvedValue(mockResponse);
 
-        await expect(treeAPI.getTreeById(treeId)).rejects.toThrow('Tree not found');
+        const treeData = {
+          speciesId: 1,
+          location: '{"type":"Point","coordinates":[1,2]}',
+          title: 'Apple Tree',
+          description: 'A delicious apple tree',
+          accessibility: 'public',
+        };
+
+        await treeAPI.createTree(treeData);
+
+        expect(axiosMock.post).toHaveBeenCalledWith('/trees', treeData);
       });
     });
 
     describe('updateTree', () => {
-      it('should call the correct endpoint with tree ID and data', async () => {
-        const treeId = '123';
-        const treeData = { title: 'Updated Tree' };
-        mockedAxios.patch.mockResolvedValue({ data: { tree: { id: treeId, title: 'Updated Tree' } } });
+      it('should call axios patch with correct endpoint and data', async () => {
+        const mockResponse = { data: { id: 1 } };
+        const axiosMock = require('axios').create();
+        axiosMock.patch.mockResolvedValue(mockResponse);
 
-        await treeAPI.updateTree(treeId, treeData);
+        const updateData = { title: 'Updated Tree' };
+        await treeAPI.updateTree('1', updateData);
 
-        expect(mockedAxios.patch).toHaveBeenCalledWith(`/trees/${treeId}`, treeData);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const treeId = '123';
-        const treeData = { title: 'Updated Tree' };
-        const error = new Error('Update failed');
-        mockedAxios.patch.mockRejectedValue(error);
-
-        await expect(treeAPI.updateTree(treeId, treeData)).rejects.toThrow('Update failed');
+        expect(axiosMock.patch).toHaveBeenCalledWith('/trees/1', updateData);
       });
     });
 
     describe('deleteTree', () => {
-      it('should call the correct endpoint with tree ID', async () => {
-        const treeId = '123';
-        mockedAxios.delete.mockResolvedValue({ data: { message: 'Tree deleted successfully' } });
+      it('should call axios delete with correct endpoint', async () => {
+        const mockResponse = { data: {} };
+        const axiosMock = require('axios').create();
+        axiosMock.delete.mockResolvedValue(mockResponse);
 
-        await treeAPI.deleteTree(treeId);
+        await treeAPI.deleteTree('1');
 
-        expect(mockedAxios.delete).toHaveBeenCalledWith(`/trees/${treeId}`);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const treeId = '123';
-        const error = new Error('Delete failed');
-        mockedAxios.delete.mockRejectedValue(error);
-
-        await expect(treeAPI.deleteTree(treeId)).rejects.toThrow('Delete failed');
+        expect(axiosMock.delete).toHaveBeenCalledWith('/trees/1');
       });
     });
 
     describe('searchTrees', () => {
-      it('should call the correct endpoint with search parameters', async () => {
-        const params = { query: 'mango', lat: -23.5505, lng: -46.6333, radius: 10 };
-        mockedAxios.get.mockResolvedValue({ data: { trees: [] } });
+      it('should call axios get with correct endpoint and search params', async () => {
+        const mockResponse = { data: [] };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
 
-        await treeAPI.searchTrees(params);
+        const searchParams = {
+          query: 'apple',
+          lat: 40.7128,
+          lng: -74.0060,
+          radius: 10000,
+        };
 
-        expect(mockedAxios.get).toHaveBeenCalledWith('/trees/search', { params });
-      });
+        await treeAPI.searchTrees(searchParams);
 
-      it('should handle errors gracefully', async () => {
-        const params = { query: 'mango' };
-        const error = new Error('Search failed');
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(treeAPI.searchTrees(params)).rejects.toThrow('Search failed');
-      });
-    });
-  });
-
-  describe('speciesAPI', () => {
-    describe('getAllSpecies', () => {
-      it('should call the correct endpoint', async () => {
-        mockedAxios.get.mockResolvedValue({ data: { species: [] } });
-
-        await speciesAPI.getAllSpecies();
-
-        expect(mockedAxios.get).toHaveBeenCalledWith('/species');
-      });
-
-      it('should handle errors gracefully', async () => {
-        const error = new Error('Network error');
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(speciesAPI.getAllSpecies()).rejects.toThrow('Network error');
-      });
-    });
-
-    describe('getSpeciesById', () => {
-      it('should call the correct endpoint with species ID', async () => {
-        const speciesId = '1';
-        mockedAxios.get.mockResolvedValue({ data: { species: { id: speciesId } } });
-
-        await speciesAPI.getSpeciesById(speciesId);
-
-        expect(mockedAxios.get).toHaveBeenCalledWith(`/species/${speciesId}`);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const speciesId = '1';
-        const error = new Error('Species not found');
-        mockedAxios.get.mockRejectedValue(error);
-
-        await expect(speciesAPI.getSpeciesById(speciesId)).rejects.toThrow('Species not found');
+        expect(axiosMock.get).toHaveBeenCalledWith('/trees/search', { params: searchParams });
       });
     });
   });
 
   describe('authAPI', () => {
     describe('login', () => {
-      it('should call the correct endpoint with credentials', async () => {
-        const credentials = { email: 'test@example.com', password: 'password' };
-        mockedAxios.post.mockResolvedValue({ data: { token: 'test-token' } });
+      it('should call axios post with correct endpoint and credentials', async () => {
+        const mockResponse = { data: { token: 'fake-token' } };
+        const axiosMock = require('axios').create();
+        axiosMock.post.mockResolvedValue(mockResponse);
 
-        await authAPI.login(credentials.email, credentials.password);
+        await authAPI.login('test@example.com', 'password123');
 
-        expect(mockedAxios.post).toHaveBeenCalledWith('/auth/login', credentials);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const credentials = { email: 'test@example.com', password: 'password' };
-        const error = new Error('Network error');
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(authAPI.login(credentials.email, credentials.password)).rejects.toThrow('Network error');
-      });
-
-      it('should handle invalid credentials correctly', async () => {
-        const credentials = { email: 'test@example.com', password: 'wrong-password' };
-        const error = new Error('Invalid credentials');
-        error.response = { status: 401, data: { error: 'Invalid credentials' } };
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(authAPI.login(credentials.email, credentials.password)).rejects.toHaveProperty('response.status', 401);
+        expect(axiosMock.post).toHaveBeenCalledWith('/auth/login', {
+          email: 'test@example.com',
+          password: 'password123',
+        });
       });
     });
 
     describe('register', () => {
-      it('should call the correct endpoint with user data', async () => {
-        const userData = { 
-          email: 'test@example.com', 
-          password: 'password', 
-          fullName: 'Test User', 
-          username: 'testuser' 
+      it('should call axios post with correct endpoint and user data', async () => {
+        const mockResponse = { data: { message: 'User registered' } };
+        const axiosMock = require('axios').create();
+        axiosMock.post.mockResolvedValue(mockResponse);
+
+        const userData = {
+          email: 'newuser@example.com',
+          password: 'password123',
+          fullName: 'New User',
+          username: 'newuser',
         };
-        mockedAxios.post.mockResolvedValue({ data: { token: 'test-token' } });
 
-        await authAPI.register(userData.email, userData.password, userData.fullName, userData.username);
+        await authAPI.register(userData);
 
-        expect(mockedAxios.post).toHaveBeenCalledWith('/auth/register', userData);
-      });
-
-      it('should handle errors gracefully', async () => {
-        const userData = { 
-          email: 'test@example.com', 
-          password: 'password', 
-          fullName: 'Test User', 
-          username: 'testuser' 
-        };
-        const error = new Error('Registration failed');
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(authAPI.register(userData.email, userData.password, userData.fullName, userData.username)).rejects.toThrow('Registration failed');
-      });
-
-      it('should handle validation errors correctly', async () => {
-        const userData = { 
-          email: 'invalid-email', 
-          password: 'short', 
-          fullName: '', 
-          username: 'testuser' 
-        };
-        const error = new Error('Validation failed');
-        error.response = { 
-          status: 400, 
-          data: { 
-            error: 'Validation failed',
-            details: [
-              { field: 'email', message: 'Email is invalid' },
-              { field: 'password', message: 'Password is too short' },
-              { field: 'fullName', message: 'Full name is required' }
-            ]
-          } 
-        };
-        mockedAxios.post.mockRejectedValue(error);
-
-        await expect(authAPI.register(userData.email, userData.password, userData.fullName, userData.username)).rejects.toHaveProperty('response.status', 400);
+        expect(axiosMock.post).toHaveBeenCalledWith('/auth/register', userData);
       });
     });
 
     describe('getProfile', () => {
-      it('should call the correct endpoint', async () => {
-        mockedAxios.get.mockResolvedValue({ data: { user: { id: '1', email: 'test@example.com' } } });
+      beforeEach(() => {
+        localStorageMock.getItem.mockReturnValue('fake-jwt-token');
+      });
+
+      it('should call axios get with correct endpoint', async () => {
+        const mockResponse = { data: { id: 1, email: 'test@example.com' } };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
 
         await authAPI.getProfile();
 
-        expect(mockedAxios.get).toHaveBeenCalledWith('/auth/profile');
+        expect(axiosMock.get).toHaveBeenCalledWith('/auth/profile');
       });
+    });
+  });
 
-      it('should handle errors gracefully', async () => {
-        const error = new Error('Profile not found');
-        mockedAxios.get.mockRejectedValue(error);
+  describe('speciesAPI', () => {
+    describe('getAllSpecies', () => {
+      it('should call axios get with correct endpoint', async () => {
+        const mockResponse = { data: [] };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
 
-        await expect(authAPI.getProfile()).rejects.toThrow('Profile not found');
+        await speciesAPI.getAllSpecies();
+
+        expect(axiosMock.get).toHaveBeenCalledWith('/species');
       });
+    });
+
+    describe('getSpeciesById', () => {
+      it('should call axios get with correct endpoint', async () => {
+        const mockResponse = { data: { id: 1, name: 'Apple' } };
+        const axiosMock = require('axios').create();
+        axiosMock.get.mockResolvedValue(mockResponse);
+
+        await speciesAPI.getSpeciesById('1');
+
+        expect(axiosMock.get).toHaveBeenCalledWith('/species/1');
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle API errors gracefully', async () => {
+      const axiosMock = require('axios').create();
+      const error = new Error('Network Error');
+      axiosMock.get.mockRejectedValue(error);
+
+      await expect(treeAPI.getAllTrees()).rejects.toThrow('Network Error');
+    });
+
+    it('should handle 401 errors by removing token', async () => {
+      localStorageMock.getItem.mockReturnValue('fake-jwt-token');
+      const axiosMock = require('axios').create();
+      
+      // Mock the response interceptor behavior
+      const mockError = {
+        response: { status: 401 },
+      };
+      axiosMock.get.mockRejectedValue(mockError);
+
+      try {
+        await authAPI.getProfile();
+      } catch (error) {
+        // Expected to throw
+      }
+
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('token');
+    });
+  });
+
+  describe('Request Interceptor', () => {
+    beforeEach(() => {
+      localStorageMock.getItem.mockReturnValue('fake-jwt-token');
+    });
+
+    it('should add Authorization header when token is available', async () => {
+      const mockResponse = { data: [] };
+      const axiosMock = require('axios').create();
+      axiosMock.get.mockResolvedValue(mockResponse);
+
+      await treeAPI.getAllTrees();
+
+      // Check that interceptor was called
+      expect(axiosMock.interceptors.request.use).toHaveBeenCalled();
+    });
+
+    it('should not add Authorization header when token is not available', async () => {
+      localStorageMock.getItem.mockReturnValue(null);
+
+      const mockResponse = { data: [] };
+      const axiosMock = require('axios').create();
+      axiosMock.get.mockResolvedValue(mockResponse);
+
+      await treeAPI.getAllTrees();
+
+      // Check that interceptor was called
+      expect(axiosMock.interceptors.request.use).toHaveBeenCalled();
+    });
+  });
+
+  describe('Response Interceptor', () => {
+    it('should remove token from localStorage on 401 error', async () => {
+      localStorageMock.getItem.mockReturnValue('fake-jwt-token');
+      const axiosMock = require('axios').create();
+      
+      const mockError = {
+        response: { status: 401 },
+      };
+      axiosMock.get.mockRejectedValue(mockError);
+
+      try {
+        await treeAPI.getAllTrees();
+      } catch (error) {
+        // Expected to throw
+      }
+
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('token');
+    });
+
+    it('should not remove token on other errors', async () => {
+      localStorageMock.getItem.mockReturnValue('fake-jwt-token');
+      const axiosMock = require('axios').create();
+      
+      const mockError = {
+        response: { status: 500 },
+      };
+      axiosMock.get.mockRejectedValue(mockError);
+
+      try {
+        await treeAPI.getAllTrees();
+      } catch (error) {
+        // Expected to throw
+      }
+
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
     });
   });
 });

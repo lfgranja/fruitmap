@@ -243,8 +243,13 @@ const App: React.FC = () => {
     }));
   };
 
-  // State to track the selected location for new tree
+  // State to track selected location for new tree
   const [newTreePosition, setNewTreePosition] = useState<[number, number] | null>(null);
+  
+  // State for loading indicators
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingTrees, setIsFetchingTrees] = useState(true);
+  const [isFetchingSpecies, setIsFetchingSpecies] = useState(true);
   
   // Handle map click to select tree location or interact with existing trees
   const handleMapClick = (e: { latlng: { lat: number; lng: number } }) => {

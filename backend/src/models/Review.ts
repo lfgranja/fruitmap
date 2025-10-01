@@ -1,24 +1,24 @@
 import { DataTypes, Model, Optional } from 'sequelize';
-import { sequelize } from '../config/database';
+import sequelize from '../config/database';
 import User from './User';
 import Tree from './Tree';
 
 interface ReviewAttributes {
-  id: number;
-  userId: number;
-  treeId: number;
+  id: string;
+  userId: string;
+  treeId: string;
   rating: number;
-  comment: string;
+  comment?: string;
 }
 
 interface ReviewCreationAttributes extends Optional<ReviewAttributes, 'id'> {}
 
 class Review extends Model<ReviewAttributes, ReviewCreationAttributes> implements ReviewAttributes {
-  public id!: number;
-  public userId!: number;
-  public treeId!: number;
+  public id!: string;
+  public userId!: string;
+  public treeId!: string;
   public rating!: number;
-  public public comment!: string;
+  public comment?: string;
 
   // timestamps!
   public readonly createdAt!: Date;
@@ -28,12 +28,12 @@ class Review extends Model<ReviewAttributes, ReviewCreationAttributes> implement
 Review.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     userId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: User,
@@ -41,7 +41,7 @@ Review.init(
       },
     },
     treeId: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: Tree,
@@ -57,7 +57,7 @@ Review.init(
       },
     },
     comment: {
-      type: DataTypes.STRING(1000),
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },
