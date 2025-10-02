@@ -2,7 +2,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 import User from './User'; // Import User model
-import TreeSpecies from './TreeSpecies'; // Import TreeSpecies model
+import Review from './Review'; // Import Review model
 import Review from './Review'; // Import Review model
 
 interface TreeAttributes {
@@ -42,6 +42,7 @@ class Tree extends Model<TreeAttributes, TreeCreationAttributes> implements Tree
   static associate(models: any) {
     Tree.belongsTo(models.User, { foreignKey: 'contributorId', as: 'treeContributor' }); // Use treeContributor alias
     Tree.belongsTo(models.TreeSpecies, { foreignKey: 'speciesId', as: 'species' });
+    Tree.hasMany(models.Review, { foreignKey: 'treeId', as: 'reviews' });
     Tree.hasMany(models.Review, { foreignKey: 'treeId', as: 'reviews' });
   }
 }

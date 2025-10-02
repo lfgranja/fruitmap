@@ -1,7 +1,7 @@
 // src/models/User.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
-import Tree from './Tree'; // Import Tree model
+import Review from './Review'; // Import Review model
 import Review from './Review'; // Import Review model
 
 interface UserAttributes {
@@ -35,6 +35,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
 
   static associate(models: any) {
     User.hasMany(models.Tree, { foreignKey: 'contributorId', as: 'contributedTrees' });
+    User.hasMany(models.Review, { foreignKey: 'userId', as: 'reviews' });
     User.hasMany(models.Review, { foreignKey: 'userId', as: 'reviews' });
   }
 }

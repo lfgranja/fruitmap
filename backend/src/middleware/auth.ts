@@ -1,6 +1,6 @@
 // src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
-import authService, { InvalidTokenError, ExpiredTokenError } from '../services/authService';
+import authService from '../services/authService';
 
 interface AuthRequest extends Request {
   user?: {
@@ -17,18 +17,12 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
-    const decoded = authService.verifyToken(token);
+    const decoded = await authService.verifyToken(token);
     req.user = decoded;
     next();
   } catch (error) {
-    if (error instanceof ExpiredTokenError) {
-      return res.status(401).json({ error: error.message });
-    }
-    if (error instanceof InvalidTokenError) {
-      return res.status(401).json({ error: error.message });
-    }
-    console.error('Unexpected error during authentication:', error);
-    res.status(500).json({ error: 'An internal server error occurred during authentication.' });
+    console.error('Authentication error:', error);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 

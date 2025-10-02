@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import db from '../models';
 import { AuthRequest } from '../middleware/auth';
 import geospatialService from '../services/geospatialService';
+import { Op } from 'sequelize';
 
 // Get all trees with optional filtering
 const getAllTrees = async (req: Request, res: Response) => {
@@ -84,7 +85,7 @@ const getAllTrees = async (req: Request, res: Response) => {
       total = trees.length;
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       trees: paginatedTrees,
       pagination: {
         total,
@@ -94,7 +95,7 @@ const getAllTrees = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -122,9 +123,9 @@ const getTreeById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Tree not found' });
     }
 
-    res.status(200).json({ tree });
+    return res.status(200).json({ tree });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -168,12 +169,12 @@ const createTree = async (req: AuthRequest, res: Response) => {
       status: 'active'
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Tree created successfully',
       tree
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -211,12 +212,12 @@ const updateTree = async (req: AuthRequest, res: Response) => {
       status: status !== undefined ? status : tree.status
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Tree updated successfully',
       tree
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -245,11 +246,11 @@ const deleteTree = async (req: AuthRequest, res: Response) => {
 
     await tree.destroy();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Tree deleted successfully'
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -277,12 +278,12 @@ const searchTrees = async (req: Request, res: Response) => {
           (tree.description && tree.description.toLowerCase().includes(searchTerm))
         );
         
-        res.status(200).json({ 
+        return res.status(200).json({ 
           trees: filteredTrees,
           total: filteredTrees.length
         });
       } else {
-        res.status(200).json({ 
+        return res.status(200).json({ 
           trees,
           total: trees.length
         });
@@ -292,7 +293,7 @@ const searchTrees = async (req: Request, res: Response) => {
       const whereClause: any = { status: 'active' };
       
       if (query) {
-        whereClause.title = { [db.sequelize.Op.iLike]: `%${query}%` };
+        whereClause.title = { [Op.iLike]: `%${query}%` };
       }
       
       if (species) {
@@ -315,13 +316,13 @@ const searchTrees = async (req: Request, res: Response) => {
         ]
       });
 
-      res.status(200).json({ 
+      return res.status(200).json({ 
         trees,
         total: trees.length
       });
     }
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -345,12 +346,12 @@ const getTreesBySpecies = async (req: Request, res: Response) => {
       trees = await geospatialService.getTreesBySpecies(parseInt(speciesId, 10));
     }
 
-    res.status(200).json({ 
+    return res.status(200).json({ 
       trees,
       total: trees.length
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 

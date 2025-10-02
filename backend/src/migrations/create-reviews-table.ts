@@ -1,7 +1,7 @@
-// src/migrations/create-reviews-table.ts
+// backend/src/migrations/create-reviews-table.ts
 import { QueryInterface, DataTypes } from 'sequelize';
-
-export default {
+ 
+module.exports = {
   up: async (queryInterface: QueryInterface) => {
     await queryInterface.createTable('reviews', {
       id: {
@@ -9,55 +9,47 @@ export default {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      tree_id: {
+      userId: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'trees',
+          model: 'users', // name of the User model table
           key: 'id',
         },
+        onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      user_id: {
+      treeId: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'trees', // name of the Tree model table
           key: 'id',
         },
+        onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
       rating: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: {
-          min: 1,
-          max: 5,
-        },
       },
       comment: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      created_at: {
+      createdAt: {
         type: DataTypes.DATE,
+        allowNull: false,
         defaultValue: DataTypes.NOW,
       },
-      updated_at: {
+      updatedAt: {
         type: DataTypes.DATE,
+        allowNull: false,
         defaultValue: DataTypes.NOW,
       },
-    });
-
-    // Create index for better query performance
-    await queryInterface.addIndex('reviews', ['tree_id']);
-    await queryInterface.addIndex('reviews', ['user_id']);
-    await queryInterface.addIndex('reviews', ['tree_id', 'user_id'], {
-      unique: true,
-      name: 'unique_user_tree_review',
     });
   },
-
+ 
   down: async (queryInterface: QueryInterface) => {
     await queryInterface.dropTable('reviews');
   },

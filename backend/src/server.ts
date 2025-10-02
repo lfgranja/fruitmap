@@ -4,7 +4,7 @@ import helmet from 'helmet'
 import compression from 'compression'
 import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
-import sequelize from './src/config/database'
+import sequelize from './config/database'
 
 // Load environment variables
 dotenv.config()
@@ -37,14 +37,15 @@ app.use(express.urlencoded({ extended: true }))
 app.use(compression())
 
 // Import routes
-import authRoutes from './src/routes/authRoutes'
-import treeRoutes from './src/routes/treeRoutes'
-import reviewRoutes from './src/routes/reviewRoutes'
-import speciesRoutes from './src/routes/speciesRoutes'
+import authRoutes from './routes/authRoutes'
+import treeRoutes from './routes/treeRoutes'
+import reviewRoutes from './routes/reviewRoutes'
+import speciesRoutes from './routes/speciesRoutes'
 
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/trees', treeRoutes)
+app.use('/api/reviews', reviewRoutes)
 app.use('/api/reviews', reviewRoutes)
 app.use('/api/species', speciesRoutes)
 

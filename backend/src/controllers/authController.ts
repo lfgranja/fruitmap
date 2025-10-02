@@ -20,7 +20,7 @@ const register = async (req: Request, res: Response) => {
       fullName
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'User registered successfully',
       token: result.token,
       user: {
@@ -31,7 +31,7 @@ const register = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -50,7 +50,7 @@ const login = async (req: Request, res: Response) => {
       password
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Login successful',
       token: result.token,
       user: {
@@ -61,7 +61,7 @@ const login = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -74,7 +74,7 @@ const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       user: {
         id: user.id,
         email: user.email,
@@ -84,7 +84,7 @@ const getProfile = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
