@@ -5,7 +5,7 @@ const eslintConfigPrettier = require("eslint-config-prettier");
 module.exports = [
   {
     languageOptions: {
-      ecmaVersion: 2021,
+      ecmaVersion: 2024,
       sourceType: "module",
       globals: {
         ...globals.browser,
