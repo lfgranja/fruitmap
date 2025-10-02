@@ -48,6 +48,14 @@ module.exports = {
         defaultValue: DataTypes.NOW,
       },
     });
+
+    // Create index for better query performance
+    await queryInterface.addIndex('reviews', ['userId']);
+    await queryInterface.addIndex('reviews', ['treeId']);
+    await queryInterface.addIndex('reviews', ['userId', 'treeId'], {
+      unique: true,
+      name: 'unique_user_tree_review',
+    });
   },
  
   down: async (queryInterface: QueryInterface) => {

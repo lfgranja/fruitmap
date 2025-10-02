@@ -46,7 +46,6 @@ import speciesRoutes from './routes/speciesRoutes'
 app.use('/api/auth', authRoutes)
 app.use('/api/trees', treeRoutes)
 app.use('/api/reviews', reviewRoutes)
-app.use('/api/reviews', reviewRoutes)
 app.use('/api/species', speciesRoutes)
 
 // Health check endpoint

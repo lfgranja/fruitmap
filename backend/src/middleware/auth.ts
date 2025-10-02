@@ -20,9 +20,15 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const decoded = await authService.verifyToken(token);
     req.user = decoded;
     next();
-  } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Invalid or expired token' });
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    console.error('Unexpected error during authentication:', error);
+    return res.status(500).json({ error: 'An internal server error occurred during authentication.' });
   }
 };
 
