@@ -8,12 +8,25 @@ The API base URL depends on the environment:
 The frontend will use the `REACT_APP_API_URL` environment variable, defaulting to `http://localhost:5000/api` if not provided.
 
 ## Authentication
+
+### AuthService
+The `AuthService` is responsible for generating and verifying JSON Web Tokens (JWTs) used for user authentication. It provides methods to create new tokens upon successful login/registration and to validate incoming tokens from authenticated requests.
+
+**Token Generation:**
+- `generateToken(user: { id: string; email: string }): string`
+  - Creates a new JWT for the given user payload.
+
+**Token Verification:**
+- `verifyToken(token: string): { id: string; email: string }`
+  - Verifies the authenticity and validity of a given JWT.
+  - If verification fails, it propagates standard errors from the `jsonwebtoken` library. Consumers should check the `error.name` property for values like `TokenExpiredError` and `JsonWebTokenError` to handle specific JWT-related issues.
+
 Most endpoints require authentication using JWT tokens. The token should be included in the Authorization header as a Bearer token:
 ```
 Authorization: Bearer <jwt-token>
 ```
 
-## API Endpoints
+### API Endpoints
 
 ### Trees
 
@@ -179,6 +192,7 @@ Search for trees with various criteria.
   "trees": [...]
 }
 ```
+
 
 ### Reviews
 

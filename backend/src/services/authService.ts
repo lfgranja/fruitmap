@@ -93,7 +93,7 @@ class AuthService {
     return { user, token };
   }
 
-  private generateToken(payload: TokenPayload): string {
+  public generateToken(payload: TokenPayload): string {
     return jwt.sign(payload, this.jwtSecret, { expiresIn: this.jwtExpiry } as SignOptions);
   }
 

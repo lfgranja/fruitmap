@@ -10,9 +10,9 @@ const getAllSpecies = async (req: Request, res: Response) => {
       order: [['name', 'ASC']]
     });
 
-    res.status(200).json({ species });
+    return res.status(200).json({ species });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -29,9 +29,9 @@ const getSpeciesById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Species not found' });
     }
 
-    res.status(200).json({ species });
+    return res.status(200).json({ species });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 

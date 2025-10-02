@@ -1,6 +1,7 @@
 // src/models/TreeSpecies.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
+import Tree from './Tree'; // Import Tree model
 
 interface TreeSpeciesAttributes {
   id: number;
@@ -26,6 +27,10 @@ class TreeSpecies extends Model<TreeSpeciesAttributes, TreeSpeciesCreationAttrib
   // Timestamps
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  static associate(models: any) {
+    TreeSpecies.hasMany(models.Tree, { foreignKey: 'speciesId', as: 'trees' });
+  }
 }
 
 TreeSpecies.init({
