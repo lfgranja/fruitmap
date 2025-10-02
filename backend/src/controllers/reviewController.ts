@@ -1,5 +1,12 @@
 import type { Request, Response } from 'express';
-import { createReview, getReviewsForTree, updateReview, deleteReview, getAverageRating, getReviewCount } from '../services/reviewService';
+import { 
+  createReview as createReviewSvc, 
+  getReviewsForTree as getReviewsForTreeSvc, 
+  updateReview as updateReviewSvc, 
+  deleteReview as deleteReviewSvc, 
+  getAverageRating as getAverageRatingSvc, 
+  getReviewCount as getReviewCountSvc 
+} from '../services/reviewService';
 import type { AuthRequest } from '../middleware/auth';
 import db from '../models';
 import { createReviewSchema, updateReviewSchema } from '../validations/reviewValidation';
@@ -24,7 +31,7 @@ const createReviewHandler = async (req: AuthRequest, res: Response): Promise<Res
       comment,
     };
  
-    const review = await createReview(reviewData);
+    const review = await createReviewSvc(reviewData);
  
     return res.status(201).json({
       message: 'Review created successfully',
@@ -43,11 +50,9 @@ const getReviewsForTreeHandler = async (req: Request, res: Response): Promise<Re
     const limitNum = parseInt(limit, 10);
     const offset = (parseInt(page, 10) - 1) * limitNum;
  
-    const { reviews, count } = await getReviewsForTree(treeId, limitNum, offset);
+    const { reviews, count } = await getReviewsForTreeSvc(treeId, limitNum, offset);
  
-    const averageRating = await getAverageRating(treeId);
- 
-    return res.status(200).json({
+    const averageRating = await getAverageRatingSvc(treeId);
       reviews,
       pagination: {
         total: count,
@@ -84,7 +89,7 @@ const updateReviewHandler = async (req: AuthRequest, res: Response): Promise<Res
     if (rating !== undefined) updateData.rating = rating;
     if (comment !== undefined) updateData.comment = comment;
  
-    const updatedReview = await updateReview(reviewId, req.user.id, updateData);
+    const updatedReview = await updateReviewSvc(reviewId, req.user.id, updateData);
  
     return res.status(200).json({
       message: 'Review updated successfully',
@@ -103,7 +108,7 @@ const deleteReviewHandler = async (req: AuthRequest, res: Response): Promise<Res
  
     const { reviewId } = req.params;
  
-    await deleteReview(reviewId, req.user.id);
+    await deleteReviewSvc(reviewId, req.user.id);
  
     return res.status(200).json({
       message: 'Review deleted successfully',
@@ -117,8 +122,8 @@ const getReviewStatsHandler = async (req: Request, res: Response): Promise<Respo
   try {
     const { treeId } = req.params;
  
-    const averageRating = await getAverageRating(treeId);
-    const reviewCount = await getReviewCount(treeId);
+    const averageRating = await getAverageRatingSvc(treeId);
+    const reviewCount = await getReviewCountSvc(treeId);
 
     const ratingDistribution = await db.Review.findAll({
       where: { treeId },
@@ -127,13 +132,12 @@ const getReviewStatsHandler = async (req: Request, res: Response): Promise<Respo
       order: ['rating'],
     });
 
-    const completeDistribution = [1, 2, 3, 4, 5].map(rating => {
-      const found = ratingDistribution.find(r => r.rating === rating);
-      return {
-        rating,
-        count: found ? parseInt(found.get('count') as string, 10) : 0,
-      };
-    });
+    const ratingMap = new Map(ratingDistribution.map(r => [r.rating, parseInt(r.get('count') as string, 10)]));
+
+    const completeDistribution = [1, 2, 3, 4, 5].map(rating => ({
+      rating,
+      count: ratingMap.get(rating) || 0,
+    }));
  
     return res.status(200).json({
       averageRating,

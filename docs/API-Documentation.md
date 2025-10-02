@@ -19,8 +19,7 @@ The `AuthService` is responsible for generating and verifying JSON Web Tokens (J
 **Token Verification:**
 - `verifyToken(token: string): { id: string; email: string }`
   - Verifies the authenticity and validity of a given JWT.
-  - Throws `InvalidTokenError` for malformed or invalid tokens.
-  - Throws `ExpiredTokenError` for tokens that have passed their expiration time.
+  - If verification fails, it propagates standard errors from the `jsonwebtoken` library. Consumers should check the `error.name` property for values like `TokenExpiredError` and `JsonWebTokenError` to handle specific JWT-related issues.
 
 Most endpoints require authentication using JWT tokens. The token should be included in the Authorization header as a Bearer token:
 ```

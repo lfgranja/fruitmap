@@ -19,7 +19,7 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
 
     const decoded = await authService.verifyToken(token);
     req.user = decoded;
-    next();
+    return next();
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token expired' });

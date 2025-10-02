@@ -29,7 +29,7 @@ class TreeSpecies extends Model<TreeSpeciesAttributes, TreeSpeciesCreationAttrib
   public readonly updatedAt!: Date;
 
   static associate(models: any) {
-    TreeSpecies.hasMany(models.Tree, { foreignKey: 'speciesId', as: 'species' });
+    TreeSpecies.hasMany(models.Tree, { foreignKey: 'speciesId', as: 'trees' });
   }
 }
 
