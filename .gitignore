@@ -1,6 +1,1 @@
 backend/.env
-frontend/.env
-backend/node_modules
-backend/dist
-backend/db.sqlite
-frontend/node_modules
